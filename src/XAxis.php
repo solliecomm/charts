@@ -12,7 +12,7 @@ class XAxis implements Renderable
     public Closure $formatter;
 
     /**
-     * @param  float[]  $data
+     * @param  array<float|string>  $data
      * @param  Renderable[]  $annotations
      */
     public function __construct(
@@ -26,7 +26,13 @@ class XAxis implements Renderable
         public ?string $fontFamily = null,
         ?Closure $formatter = null
     ) {
-        $this->formatter = $formatter ?? fn (mixed $label) => number_format($label);
+        $this->formatter = $formatter ?? function (float|string $label) {
+            if (is_string($label)) {
+                return $label;
+            }
+
+            return number_format($label);
+        };
     }
 
     public function maxValue(): float
@@ -35,11 +41,17 @@ class XAxis implements Renderable
             return $this->maxValue;
         }
 
-        if (count($this->data) === 0) {
+        $data = $this->data;
+        if (count($data) === 0) {
             return 0;
         }
 
-        return max(array_map(fn (float $data) => $data, $this->data));
+        if ($this->hasStringLabels()) {
+            return count($data) - 1;
+        }
+
+        /** @var array<float> $data */
+        return max(array_map(fn (float $label) => $label, $data));
     }
 
     public function minValue(): float
@@ -48,11 +60,17 @@ class XAxis implements Renderable
             return $this->minValue;
         }
 
-        if (count($this->data) === 0) {
+        $data = $this->data;
+        if (count($data) === 0) {
             return 0;
         }
 
-        return min(array_map(fn (float $data) => $data, $this->data));
+        if ($this->hasStringLabels()) {
+            return 0;
+        }
+
+        /** @var array<float> $data */
+        return min(array_map(fn (float $label) => $label, $data));
     }
 
     public function render(Chart $chart): string
@@ -108,5 +126,16 @@ class XAxis implements Renderable
         );
 
         return $svg;
+    }
+
+    protected function hasStringLabels(): bool
+    {
+        foreach ($this->data as $label) {
+            if (! is_string($label)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

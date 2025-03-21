@@ -10,7 +10,7 @@ use Maantje\Charts\SVG\Path;
 class Line implements Renderable
 {
     /**
-     * @param  (Point|array{float, float})[]  $points
+     * @param  (Point|array{float|string, float})[]  $points
      */
     public function __construct(
         public array $points = [],
@@ -188,7 +188,7 @@ class Line implements Renderable
     }
 
     /**
-     * @return float[]
+     * @return array<float|string>
      */
     public function xPoints(): array
     {
@@ -201,11 +201,6 @@ class Line implements Renderable
     public function yPoints(): array
     {
         return array_map(fn (Point|array $point) => is_array($point) ? $point[1] : $point->y, $this->points);
-    }
-
-    public function maxXValue(): float
-    {
-        return max($this->xPoints());
     }
 
     public function maxYValue(): float

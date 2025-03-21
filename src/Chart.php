@@ -97,8 +97,12 @@ class Chart
         return $svg;
     }
 
-    public function xFor(float $x): float
+    public function xFor(float|string $x): float
     {
+        if (is_string($x)) {
+            $x = (int) array_search($x, $this->xAxis->data, true);
+        }
+
         $minValue = $this->xAxis->minValue();
         $maxValue = $this->xAxis->maxValue();
         $range = $maxValue - $minValue;
